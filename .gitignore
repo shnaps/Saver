@@ -1,0 +1,5 @@
+# Created by .ignore support plugin (hsz.mobi)
+/src/main/resources/messages.txt
+/target/
+/.idea/
+/comshnapssaver.iml
