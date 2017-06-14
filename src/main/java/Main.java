@@ -4,6 +4,7 @@ import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -13,14 +14,21 @@ public class Main {
     public static String PATH = System.getProperty("user.dir") + File.separator + "pic";
     public static String MESSAGES = "messages.txt";
     public static String URL_PATTERN = "(https://pp.userapi.com/).+(.jpg)";
-    public static String NAME_PATTERN = "(/)([A-Za-z1-9-_]+)(.jpg)";
+    public static String NAME_PATTERN = "(/)([A-Za-z0-9-_]+)(.jpg)";
     public URL url = null;
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         String messagesArgs = args[0];
         Main start = new Main();
+        if (!start.checkDir()) {
+            Files.createDirectory(Paths.get(PATH));
+        }
         Pattern urlPattern = Pattern.compile(URL_PATTERN);
         start.parse(urlPattern, messagesArgs);
+    }
+
+    private boolean checkDir() {
+        return Files.isDirectory(Paths.get(PATH));
     }
 
     private void parse(Pattern urlPattern, String fileName) {
@@ -28,13 +36,13 @@ public class Main {
         File file = new File(classLoader.getResource(fileName).getFile());
         String filPathAbs = file.getAbsolutePath();
         try (Stream<String> stringStream = Files.lines(Paths.get(filPathAbs))) {
-            stringStream.forEach(line -> new Thread() {
+            stringStream.forEach/*(line -> new Thread() {
                 @Override
                 public void run() {
-                     load(line, urlPattern);
+                    load(line, urlPattern);
                     Thread.currentThread().stop();
                 }
-            }.start());
+            }.start());*/(line -> load(line, urlPattern));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -50,20 +58,21 @@ public class Main {
                 matchedName = nameMatcher.group().replaceFirst("/", "");
             }
             System.out.println(matchedName);
-            try {
-                url = new URL(lineMatcher.group());
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
+            if (!Files.exists(Paths.get(PATH + File.separator + matchedName))) {
+                try {
+                    url = new URL(lineMatcher.group());
+                } catch (MalformedURLException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    ReadableByteChannel rb = Channels.newChannel(url.openStream());
+                    FileOutputStream fos = new FileOutputStream(PATH + File.separator + matchedName);
+                    fos.getChannel().transferFrom(rb, 0, Long.MAX_VALUE);
+                    fos.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
-            try {
-                ReadableByteChannel rb = Channels.newChannel(url.openStream());
-                FileOutputStream fos = new FileOutputStream(PATH + matchedName);
-                fos.getChannel().transferFrom(rb, 0, Long.MAX_VALUE);
-                fos.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
         }
     }
 
