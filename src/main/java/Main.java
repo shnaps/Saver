@@ -26,8 +26,8 @@ public class Main {
     private void parse(Pattern urlPattern, String fileName) {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource(fileName).getFile());
-        String filPathAbs = file.getAbsolutePath();
-        try (Stream<String> stringStream = Files.lines(Paths.get(filPathAbs))) {
+        String filePathAbs = file.getAbsolutePath();
+        try (Stream<String> stringStream = Files.lines(Paths.get(filePathAbs))) {
             stringStream.forEach(line -> load(line, urlPattern));
         } catch (IOException e) {
             e.printStackTrace();
