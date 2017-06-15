@@ -1,15 +1,26 @@
-https://pp.userapi.com/c637717/v637717044/5c8ff/omqtMwUR93U.jpg
+bsr : https://pp.userapi.com/c637717/v637717044/5c8ff/omqtMwUR93U.jpg
+bsr
+ASD : https://pp.userapi.com/c7005/v7005417/3ab61/JfHw0bwav8s.jpg
 ASD
-https://pp.userapi.com/c7005/v7005417/3ab61/JfHw0bwav8s.jpg
-ASD
-https://pp.userapi.com/c638119/v638119570/44d71/48xfOxlxNPI.jpg
+FASF : https://pp.userapi.com/c638119/v638119570/44d71/48xfOxlxNPI.jpg
 FASF
-https://pp.userapi.com/c836333/v836333044/42797/JFgtlkRPe8g.jpg
+VXv : https://pp.userapi.com/c836333/v836333044/42797/JFgtlkRPe8g.jpg
 VXv
-https://pp.userapi.com/c836333/v836333044/42964/avnOXbNp4V0.jpg
+adfgbrts : https://pp.userapi.com/c836333/v836333044/42964/avnOXbNp4V0.jpg
 adfgbrts
-https://pp.userapi.com/c836333/v836333044/4310e/yJgnSsLLMWk.jpg
+brsthety : https://pp.userapi.com/c836333/v836333044/4310e/yJgnSsLLMWk.jpg
 brsthety
-https://pp.userapi.com/c840027/v840027044/96f3/MaUZrlm0f6k.jpg
+DV : https://pp.userapi.com/c840027/v840027044/96f3/MaUZrlm0f6k.jpg
 DV
 https://pp.userapi.com/c836335/v836335570/525e3/kdM7pEoykBI.jpg
+
+
+Test part for images
+
+Attachments:[
+Attachments:[
+vk.com/photo29056909_387949842 : https://pp.userapi.com/c628624/v628624579/1ce2a/79rPIQfzf0k.jpg
+]
+" +
+                "{\"type\":\"wall\",\"wall\":{\"id\":46346,\"from_id\":-88497493,\"to_id\":-88497493,\"date\":1432146265,\"post_type\":\"post\",\"text\":\"Doctor Who\",\"marked_as_ads\":0,\"attachment\":{\"type\":\"photo\",\"photo\":{\"pid\":368262733,\"aid\":-7,\"owner_id\":-88497493,\"user_id\":100,\"src\":\"https://cs541608.userapi.com/c540103/v540103623/28ab8/ELMQbvas9mw.jpg\",\"src_big\":\"https://cs541608.userapi.com/c540103/v540103623/28ab9/HW_-Ypg7aIA.jpg\",\"src_small\":\"https://cs541608.userapi.com/c540103/v540103623/28ab7/cHIfa66zHzA.jpg\",\"src_xbig\":\"https://cs541608.userapi.com/c540103/v540103623/28aba/E2PxgTEsDAI.jpg\",\"width\":592,\"height\":675,\"text\":\"\",\"created\":1432146266,\"access_key\":\"2c8c8cbd4156b0fe44\"}},\"attachments\":[{\"type\":\"photo\",\"photo\":{\"pid\":368262733,\"aid\":-7,\"owner_id\":-88497493,\"user_id\":100,\"src\":\"https://cs541608.userapi.com/c540103/v540103623/28ab8/ELMQbvas9mw.jpg\",\"src_big\":\"https://cs541608.userapi.com/c540103/v540103623/28ab9/HW_-Ypg7aIA.jpg\",\"src_small\":\"https://cs541608.userapi.com/c540103/v540103623/28ab7/cHIfa66zHzA.jpg\",\"src_xbig\":\"https://cs541608.userapi.com/c540103/v540103623/28aba/E2PxgTEsDAI.jpg\",\"width\":592,\"height\":675,\"text\":\"\",\"created\":1432146266,\"access_key\":\"2c8c8cbd4156b0fe44\"}},{\"type\":\"photo\",\"photo\":{\"pid\":368262734,\"aid\":-7,\"owner_id\":-88497493,\"user_id\":100,\"src\":\"https://cs541608.userapi.com/c540103/v540103623/28ac0/I8vfNKpPTS4.jpg\",\"src_big\":\"https://cs541608.userapi.com/c540103/v540103623/28ac1/TG7n4nyOz8M.jpg\",\"src_small\":\"https://cs541608.userapi.com/c540103/v540103623/28abf/aLDx4DpSsyE.jpg\",\"src_xbig\":\"https://cs541608.userapi.com/c540103/v540103623/28ac2/afDjOheOxwk.jpg\",\"width\":588,\"height\":670,\"text\":\"\",\"created\":1432146266,\"access_key\":\"561b7f81f8780c9c89\"}},{\"type\":\"photo\",\"photo\":{\"pid\":368262735,\"aid\":-7,\"owner_id\":-88497493,\"user_id\":100,\"src\":\"https://cs541608.userapi.com/c540103/v540103623/28ac8/GT5OK3EzA-o.jpg\",\"src_big\":\"https://cs541608.userapi.com/c540103/v540103623/28ac9/toVVTvUPoWc.jpg\",\"src_small\":\"https://cs541608.userapi.com/c540103/v540103623/28ac7/xH-uyAKHPVM.jpg\",\"src_xbig\":\"https://cs541608.userapi.com/c540103/v540103623/28aca/JbLDjEB3Xlw.jpg\",\"width\":584,\"height\":670,\"text\":\"\",\"created\":1432146266,\"access_key\":\"2bb4f2b16209d6be43\"}},{\"type\":\"photo\",\"photo\":{\"pid\":368262736,\"aid\":-7,\"owner_id\":-88497493,\"user_id\":100,\"src\":\"https://cs541608.userapi.com/c540103/v540103623/28ad0/kfoNH2yGwq0.jpg\",\"src_big\":\"https://cs541608.userapi.com/c540103/v540103623/28ad1/yv46R35dhtI.jpg\",\"src_small\":\"https://cs541608.userapi.com/c540103/v540103623/28acf/djhz72pctgs.jpg\",\"src_xbig\":\"https://cs541608.userapi.com/c540103/v540103623/28ad2/SFZFpnWcKt0.jpg\",\"width\":586,\"height\":649,\"text\":\"\",\"created\":1432146266,\"access_key\":\"68f9e2f9b6618cf432\"}}],\"post_source\":{\"type\":\"vk\"},\"comments\":{\"count\":52,\"can_post\":1},\"likes\":{\"count\":2811,\"user_likes\":0,\"can_like\":1,\"can_publish\":1},\"reposts\":{\"count\":117,\"user_reposted\":0}}}\n" +
+                "]
