@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 /**
@@ -15,9 +16,9 @@ public class MessagesWorker {
 
     private final static Logger LOGGER = Logger.getLogger(MessagesWorker.class);
 
-    private ExecutorService instance = Executors.newFixedThreadPool(1);
+    private ExecutorService instance = Executors.newFixedThreadPool(15);
 
-    private final String PATH = "d:\\Needed soft\\pic-prod";
+    private final String PATH = "d:\\Needed soft\\pic history";
     //    private final String PATH = System.getProperty("user.dir") + File.separator + "pic";
 
     public String getPATH() {
@@ -56,6 +57,22 @@ public class MessagesWorker {
         } catch (IOException e) {
             LOGGER.error("Cant create stream, error!");
             e.printStackTrace();
+        } finally {
+            try {
+                LOGGER.info("Attempt to shutdown executor");
+                instance.shutdown();
+                instance.awaitTermination(5, TimeUnit.SECONDS);
+            }
+            catch (InterruptedException e) {
+                LOGGER.error("Tasks interrupted");
+            }
+            /*finally {
+                if (!instance.isTerminated()) {
+                    LOGGER.info("Cancel non-finished tasks");
+                }
+                instance.shutdownNow();
+                LOGGER.info("Shutdown finished");
+            }*/
         }
     }
 }
