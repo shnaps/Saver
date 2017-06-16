@@ -66,13 +66,6 @@ public class MessagesWorker {
             catch (InterruptedException e) {
                 LOGGER.error("Tasks interrupted");
             }
-            /*finally {
-                if (!instance.isTerminated()) {
-                    LOGGER.info("Cancel non-finished tasks");
-                }
-                instance.shutdownNow();
-                LOGGER.info("Shutdown finished");
-            }*/
         }
     }
 }

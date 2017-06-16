@@ -54,7 +54,6 @@ public class ImageDownloader {
             while (lineMatcher.find()) {
                 saveImage(lineMatcher.group(), null);
             }
-
         }
     }
 
@@ -123,23 +122,17 @@ public class ImageDownloader {
         for (Object object : jsonArray) {
             JSONObject tempObject = (JSONObject) object;
             JSONObject tempJsonObject = tempObject.getJSONObject("photo");
-//            System.out.println(tempJsonObject);
-
             if (!tempJsonObject.isNull("src_xxxbig")) {
                 result.add(tempJsonObject.getString("src_xxxbig"));
-//                System.out.println("src_xxxbig added");
             } else {
                 if (!tempJsonObject.isNull("src_xxbig")) {
                     result.add(tempJsonObject.getString("src_xxbig"));
-//                    System.out.println("src_xxbig added");
                 } else {
                     if (!tempJsonObject.isNull("src_xbig")) {
                         result.add(tempJsonObject.getString("src_xbig"));
-//                        System.out.println("src_xbig added");
                     } else {
                         if (!tempJsonObject.isNull("src_big")) {
                             result.add(tempJsonObject.getString("src_big"));
-//                            System.out.println("src_big added");
                         }
                     }
                 }
