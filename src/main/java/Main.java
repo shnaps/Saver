@@ -1,3 +1,7 @@
+import org.apache.log4j.Logger;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -6,6 +10,9 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -15,9 +22,12 @@ import java.util.stream.Stream;
 
 public class Main {
 
-//    public static String PATH = System.getProperty("user.dir") + File.separator + "pic";
+    final static Logger LOGGER = Logger.getLogger(Main.class);
+
+    //    public static String PATH = System.getProperty("user.dir") + File.separator + "pic";
     public static String PATH = "d:\\Needed soft\\pic-prod";
-    public static String URL_PATTERN = "(?<=((src_?(\\w){0,4}\\\\\":\\\\\")|(\\s:\\s)))((?:https://)(?:[a-zA-Z0-9]{2,10})(?:.userapi.com/).{10,40}(?:.jpg))(?!(\\\\\",\\\\\"src))";
+    public static String URL_PATTERN = "(((\\s:\\s)))((?:https://)(?:[a-zA-Z0-9]{2,10})(?:.userapi.com/).{10,40}(?:.jpg))";
+    public static String JSON_URL_PATTERN = "(\"type\":\"wall\"?)";
     public static String NAME_PATTERN = "(/)([A-Za-z0-9-_]+)(.jpg)";
     public URL url = null;
 
@@ -62,41 +72,84 @@ public class Main {
     }
 
     private void load(String line, Pattern urlPattern, ExecutorService executor) {
-        Matcher lineMatcher = urlPattern.matcher(line);
-        while (lineMatcher.find()) {
-            Pattern name = Pattern.compile(NAME_PATTERN);
-            Matcher nameMatcher = name.matcher(lineMatcher.group());
-            String matchedName = "";
-            if (nameMatcher.find()) {
-                matchedName = nameMatcher.group().replaceFirst("/", "");
-            }
-            if (!Files.exists(Paths.get(PATH + File.separator + matchedName))) {
-                try {
-                    System.out.println("Getting image from " + lineMatcher.group());
-                    url = new URL(lineMatcher.group());
-                } catch (MalformedURLException e) {
-                    e.printStackTrace();
+        Pattern jsonPattern = Pattern.compile(JSON_URL_PATTERN);
+        Matcher jsonMatcher = jsonPattern.matcher(line);
+        if (jsonMatcher.find()) {
+            LOGGER.info("This is JSON");
+            ArrayList<String> resultImages =  findInJson(line);
+            //resultImages.forEach(record -> saveImage(record) );
+        } else {
+            Matcher lineMatcher = urlPattern.matcher(line);
+            while (lineMatcher.find()) {
+                LOGGER.info("Line matched      " + line);
+                Pattern name = Pattern.compile(NAME_PATTERN);
+                Matcher nameMatcher = name.matcher(lineMatcher.group());
+                String matchedName = "";
+                if (nameMatcher.find()) {
+                    matchedName = nameMatcher.group().replaceFirst("/", "");
                 }
-                try {
-                    ReadableByteChannel rb = Channels.newChannel(url.openStream());
-                    FileOutputStream fos = new FileOutputStream(PATH + File.separator + matchedName);
-                    fos.getChannel().transferFrom(rb, 0, Long.MAX_VALUE);
-                    System.out.println("Saving to disk image with name: " + matchedName);
-                    fos.close();
-
+                if (!Files.exists(Paths.get(PATH + File.separator + matchedName))) {
                     try {
-                        System.out.println("Attempt to shutdown executor for " + matchedName + " image");
-                        executor.shutdown();
-                        executor.awaitTermination(1, TimeUnit.SECONDS);
-                    } catch (InterruptedException e) {
-                        System.err.println("Tasks interrupted");
+                        LOGGER.info("Getting image from " + lineMatcher.group());
+                        url = new URL(lineMatcher.group());
+                    } catch (MalformedURLException e) {
+                        e.printStackTrace();
                     }
+                    try {
+                        ReadableByteChannel rb = Channels.newChannel(url.openStream());
+                        FileOutputStream fos = new FileOutputStream(PATH + File.separator + matchedName);
+                        fos.getChannel().transferFrom(rb, 0, Long.MAX_VALUE);
+                        LOGGER.info("Saving image " + line);
+                        fos.close();
 
-                } catch (IOException e) {
-                    e.printStackTrace();
+                        try {
+                            LOGGER.info("Attempt to shutdown executor for " + matchedName + " image\n");
+                            executor.shutdown();
+                            executor.awaitTermination(1, TimeUnit.SECONDS);
+                        } catch (InterruptedException e) {
+                            System.err.println("Tasks interrupted");
+                        }
+
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    LOGGER.info("File already exists " + line + "\n");
                 }
             }
         }
+    }
+
+    private ArrayList<String> findInJson(String source) {
+
+        JSONObject jsonObject = new JSONObject(source);
+        ArrayList<String> result = new ArrayList<>();
+        JSONArray jsonArray = jsonObject.getJSONObject("wall").getJSONArray("attachments");
+        for (Object object : jsonArray) {
+            JSONObject tempObject = (JSONObject) object;
+            JSONObject tempJsonObject = tempObject.getJSONObject("photo");
+            System.out.println(tempJsonObject);
+            if (tempJsonObject.getString("src_xxxbig").length() != 0) {
+                result.add(tempJsonObject.getString("src_xxxbig"));
+                System.out.println("src_xxxbig added");
+            } else {
+                if (tempJsonObject.getString("src_xxbig").length() != 0) {
+                    result.add(tempJsonObject.getString("src_xxbig"));
+                    System.out.println("src_xxbig added");
+                } else {
+                    if (tempJsonObject.getString("src_xbig").length() != 0) {
+                        result.add(tempJsonObject.getString("src_xbig"));
+                        System.out.println("src_xbig added");
+                    } else {
+                        if (tempJsonObject.getString("src_big").length() != 0) {
+                            result.add(tempJsonObject.getString("src_big"));
+                            System.out.println("src_big added");
+                        }
+                    }
+                }
+            }
+        }
+        return result;
     }
 
 }
