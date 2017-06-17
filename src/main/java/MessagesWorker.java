@@ -19,6 +19,7 @@ public class MessagesWorker {
     private ExecutorService instance = Executors.newFixedThreadPool(15);
 
     private final String PATH = "d:\\Needed soft\\pic history";
+    private int count = 1;
     //    private final String PATH = System.getProperty("user.dir") + File.separator + "pic";
 
     public String getPATH() {
@@ -44,13 +45,15 @@ public class MessagesWorker {
 
     public void findImagesLinks(String fileName) {
         ClassLoader classLoader = getClass().getClassLoader();
+
         ImageDownloader imageDownloader = new ImageDownloader();
         File file = new File(classLoader.getResource(fileName).getFile());
         String fileAbsPath = file.getAbsolutePath();
         try (Stream<String> stringStream = Files.lines(Paths.get(fileAbsPath))) {
             stringStream.forEach(line -> {
                 instance.submit(() -> {
-                            imageDownloader.download(line);
+                            imageDownloader.download(line, this.count);
+                            countPlus();
                         }
                 );
             });
@@ -59,13 +62,24 @@ public class MessagesWorker {
             e.printStackTrace();
         } finally {
             try {
+                imageDownloader.canceledImages.forEach(record -> {
+                    instance.submit(() -> {
+                        imageDownloader.download(record, this.count);
+                    });
+                });
+
                 LOGGER.info("Attempt to shutdown executor");
                 instance.shutdown();
                 instance.awaitTermination(5, TimeUnit.SECONDS);
-            }
-            catch (InterruptedException e) {
+            } catch (InterruptedException e) {
                 LOGGER.error("Tasks interrupted");
             }
         }
     }
+
+    private void countPlus() {
+        this.count = this.count + 1;
+    }
+
+
 }

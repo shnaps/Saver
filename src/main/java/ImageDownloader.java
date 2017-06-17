@@ -11,10 +11,7 @@ import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -29,7 +26,6 @@ public class ImageDownloader {
     private final String URL_PATTERN = "(\\s:\\s)((?:https://)(?:[a-zA-Z0-9]{2,10})(?:.userapi.com/).{10,40}(?:.jpg))";
     private final String JSON_URL_PATTERN = "(\"type\":\"wall\"?)";
     private final String NAME_PATTERN = "(/)([A-Za-z0-9-_]+)(.jpg)";
-    private static String folderName = "";
 
     private static Pattern urlPattern;
     private static Pattern jsonPattern;
@@ -37,16 +33,17 @@ public class ImageDownloader {
 
     private URL url;
     private MessagesWorker messagesWorker;
+    public ArrayList<String> canceledImages = new ArrayList<>();
 
-    public void download(String messagesSource) {
-        folderName = "";
+    public void download(String messagesSource, int count) {
+        String folderName = "folder ";
         messagesWorker = new MessagesWorker();
         jsonPattern = Pattern.compile(JSON_URL_PATTERN);
         Matcher jsonMatcher = jsonPattern.matcher(messagesSource);
         if (jsonMatcher.find()) {
             ArrayList<String> resultFromJson = findInJson(messagesSource);
             resultFromJson.forEach(record -> {
-                saveImage(record, folderName);
+                saveImage(record, folderName + count);
             });
         } else {
             urlPattern = Pattern.compile(URL_PATTERN);
@@ -106,6 +103,7 @@ public class ImageDownloader {
 
             } catch (IOException e) {
                 LOGGER.error("Image not saved properly, error! \"" + record + "\"   " + e.getMessage());
+                canceledImages.add(record);
                 e.printStackTrace();
             }
         } else {
@@ -118,7 +116,6 @@ public class ImageDownloader {
         JSONObject jsonObject = new JSONObject(source);
         ArrayList<String> result = new ArrayList<>();
         JSONArray jsonArray = jsonObject.getJSONObject("wall").getJSONArray("attachments");
-        folderName = (String) jsonObject.getJSONObject("wall").get("id").toString();
         for (Object object : jsonArray) {
             JSONObject tempObject = (JSONObject) object;
             JSONObject tempJsonObject = tempObject.getJSONObject("photo");
