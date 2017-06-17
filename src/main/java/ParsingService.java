@@ -13,13 +13,12 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ImageDownloader {
+public class ParsingService {
 
-    private final static Logger LOGGER = Logger.getLogger(ImageDownloader.class);
+    private final static Logger LOGGER = Logger.getLogger(ParsingService.class);
 
     private final String URL_PATTERN = "(\\s:\\s)((?:https://)(?:[a-zA-Z0-9]{2,10})(?:.userapi.com/).{10,40}(?:.jpg))";
     private final String JSON_URL_PATTERN = "(\"type\":\"wall\"?)";
@@ -30,7 +29,7 @@ public class ImageDownloader {
     private static Pattern namePattern;
 
     private URL url;
-    private MessagesWorker messagesWorker = new MessagesWorker();
+    private MessagesService messagesService = new MessagesService();
 
     public void download(String messagesSource, int count) {
         String folderName = "folder ";
@@ -60,7 +59,7 @@ public class ImageDownloader {
             matchedName = nameMatcher.group().replaceFirst("/", "");
         }
         StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(messagesWorker.getPATH());
+        stringBuilder.append(messagesService.getPath());
         stringBuilder.append(File.separator);
         if (!folderName.equals("")) {
             stringBuilder.append(folderName + File.separator);
@@ -88,14 +87,17 @@ public class ImageDownloader {
                 LOGGER.info("Saving image " + matchedName);
                 fos.close();
             } catch (IOException e) {
-                LOGGER.error("Image not saved properly, error! \"" + record + "\"   " + e.getMessage() + "\n" + Arrays.toString(e.getStackTrace()));
-                messagesWorker.getCanceledImages().add(record);
+                Pattern keyPattern = Pattern.compile("(?:\\d*\\.)?\\d+");
+                Matcher matcher = keyPattern.matcher(folderName);
+                int key = Integer.valueOf(matcher.group());
+                LOGGER.error("\nImage not saved properly, error! \"" + record + "\"      " + e.getMessage() + "\n" + Arrays.toString(e.getStackTrace())+ "\n");
+                WrongImage wrongImage = new WrongImage(key, record);
+                MessagesService.CANCELED_IMAGES.add(wrongImage);
                 e.printStackTrace();
             }
         } else {
             LOGGER.info("File already exists      " + matchedName + "");
         }
-
     }
 
     private ArrayList<String> findInJson(String source) {
