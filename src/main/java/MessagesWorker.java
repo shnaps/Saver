@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -16,7 +17,7 @@ public class MessagesWorker {
 
     private final static Logger LOGGER = Logger.getLogger(MessagesWorker.class);
 
-    private ExecutorService instance = Executors.newFixedThreadPool(15);
+    private ExecutorService instance = Executors.newFixedThreadPool(1);
 
     private ArrayList<String> canceledImages = new ArrayList<>();
 
@@ -42,38 +43,46 @@ public class MessagesWorker {
     }
 
     public void findImagesLinks(String fileName) {
-        canceledImages.add("https://pp.userapi.com/c413527/v413527378/8592/B2Da4pbAKHM.jpg");
-        ClassLoader classLoader = getClass().getClassLoader();
-        ImageDownloader imageDownloader = new ImageDownloader();
-        File file = new File(classLoader.getResource(fileName).getFile());
-        String fileAbsPath = file.getAbsolutePath();
-        try (Stream<String> stringStream = Files.lines(Paths.get(fileAbsPath))) {
-            stringStream.forEach(line -> {
-                instance.submit(() -> {
-                            imageDownloader.download(line, this.count);
-                            countPlus();
-                        }
-                );
-            });
-            this.canceledImages.forEach(record -> {
-                instance.submit(() -> {
-                    LOGGER.info("Attempt to load canceled images!");
-                    imageDownloader.download(record, this.count);
-                    LOGGER.info("Images saved!");
+        try {
+            ClassLoader classLoader = getClass().getClassLoader();
+            ImageDownloader imageDownloader = new ImageDownloader();
+            File file = new File(classLoader.getResource(fileName).getFile());
+            String fileAbsPath = file.getAbsolutePath();
+            try (Stream<String> stringStream = Files.lines(Paths.get(fileAbsPath))) {
+                stringStream.forEach(line -> {
+                    instance.submit(() -> {
+                                imageDownloader.download(line, this.count);
+                                countPlus();
+                            }
+                    );
                 });
-            });
-        } catch (IOException e) {
-            LOGGER.error("Cant create stream, error!");
-            e.printStackTrace();
-        } finally {
+            } catch (IOException e) {
+                LOGGER.error("Cant create stream, error!");
+                e.printStackTrace();
+            }
             try {
-                LOGGER.info("Attempt to shutdown executor");
-                instance.shutdown();
+
+                this.canceledImages.forEach(record -> {
+                    instance.submit(() -> {
+                        LOGGER.info("Attempt to load canceled images!");
+                        imageDownloader.download(record, this.count);
+                        LOGGER.info("Images saved!");
+                    });
+                });
+            } catch (Exception e) {
+                LOGGER.error("Somewhere is error" + e.getMessage());
+            }
+        } finally {
+
+            LOGGER.info("Attempt to shutdown executor");
+            instance.shutdown();
+            try {
                 instance.awaitTermination(5, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
                 LOGGER.error("Tasks interrupted");
             }
         }
+
 
     }
 
