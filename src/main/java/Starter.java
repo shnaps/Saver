@@ -4,9 +4,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Pattern;
 
-/**
- * Created by shnaps on 16.06.2017.
- */
 public class Starter {
     private final static Logger LOGGER = Logger.getLogger(Starter.class);
     private String messagesFileName = "";

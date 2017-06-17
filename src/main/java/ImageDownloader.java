@@ -12,13 +12,11 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * Created by shnaps on 16.06.2017.
- */
 public class ImageDownloader {
 
     private final static Logger LOGGER = Logger.getLogger(ImageDownloader.class);
@@ -32,12 +30,10 @@ public class ImageDownloader {
     private static Pattern namePattern;
 
     private URL url;
-    private MessagesWorker messagesWorker;
-    public ArrayList<String> canceledImages = new ArrayList<>();
+    private MessagesWorker messagesWorker = new MessagesWorker();
 
     public void download(String messagesSource, int count) {
         String folderName = "folder ";
-        messagesWorker = new MessagesWorker();
         jsonPattern = Pattern.compile(JSON_URL_PATTERN);
         Matcher jsonMatcher = jsonPattern.matcher(messagesSource);
         if (jsonMatcher.find()) {
@@ -49,14 +45,14 @@ public class ImageDownloader {
             urlPattern = Pattern.compile(URL_PATTERN);
             Matcher lineMatcher = urlPattern.matcher(messagesSource);
             while (lineMatcher.find()) {
-                saveImage(lineMatcher.group(), null);
+                saveImage(lineMatcher.group(), "");
             }
         }
     }
 
     private void saveImage(String record, String folderName) {
 
-        LOGGER.info("Line matched      \"" + record+ "\"");
+        LOGGER.info("Line matched      \"" + record + "\"");
         namePattern = Pattern.compile(NAME_PATTERN);
         Matcher nameMatcher = namePattern.matcher(record);
         String matchedName = "";
@@ -79,7 +75,7 @@ public class ImageDownloader {
         }
         if (!Files.exists(Paths.get(stringBuilder.toString() + matchedName))) {
             try {
-                LOGGER.info("Getting image from \"" + record +"\"");
+                LOGGER.info("Getting image from \"" + record + "\"");
                 url = new URL(record.replaceFirst(" : ", ""));
             } catch (MalformedURLException e) {
                 LOGGER.error("Url not created, error!" + record + "   " + e.getMessage());
@@ -91,19 +87,9 @@ public class ImageDownloader {
                 fos.getChannel().transferFrom(rb, 0, Long.MAX_VALUE);
                 LOGGER.info("Saving image " + matchedName);
                 fos.close();
-
-                try {
-                    LOGGER.info("Attempt to shutdown executor for " + matchedName + " image");
-                    messagesWorker.getInstance().shutdown();
-                    LOGGER.info("Sended shutdown signal " + matchedName + " image");
-                    messagesWorker.getInstance().awaitTermination(1, TimeUnit.SECONDS);
-                } catch (InterruptedException e) {
-                    LOGGER.error("Tasks interrupted" + "   " + e.getMessage());
-                }
-
             } catch (IOException e) {
-                LOGGER.error("Image not saved properly, error! \"" + record + "\"   " + e.getMessage());
-                canceledImages.add(record);
+                LOGGER.error("Image not saved properly, error! \"" + record + "\"   " + e.getMessage() + "\n" + Arrays.toString(e.getStackTrace()));
+                messagesWorker.getCanceledImages().add(record);
                 e.printStackTrace();
             }
         } else {
@@ -115,21 +101,27 @@ public class ImageDownloader {
     private ArrayList<String> findInJson(String source) {
         JSONObject jsonObject = new JSONObject(source);
         ArrayList<String> result = new ArrayList<>();
-        JSONArray jsonArray = jsonObject.getJSONObject("wall").getJSONArray("attachments");
-        for (Object object : jsonArray) {
-            JSONObject tempObject = (JSONObject) object;
-            JSONObject tempJsonObject = tempObject.getJSONObject("photo");
-            if (!tempJsonObject.isNull("src_xxxbig")) {
-                result.add(tempJsonObject.getString("src_xxxbig"));
-            } else {
-                if (!tempJsonObject.isNull("src_xxbig")) {
-                    result.add(tempJsonObject.getString("src_xxbig"));
-                } else {
-                    if (!tempJsonObject.isNull("src_xbig")) {
-                        result.add(tempJsonObject.getString("src_xbig"));
+        if (jsonObject.getJSONObject("wall").isNull("attachments")) {
+            return result;
+        } else {
+            JSONArray jsonArray = jsonObject.getJSONObject("wall").getJSONArray("attachments");
+            for (Object object : jsonArray) {
+                JSONObject tempObject = (JSONObject) object;
+                if (!tempObject.isNull("photo")) {
+                    JSONObject tempJsonObject = tempObject.getJSONObject("photo");
+                    if (!tempJsonObject.isNull("src_xxxbig")) {
+                        result.add(tempJsonObject.getString("src_xxxbig"));
                     } else {
-                        if (!tempJsonObject.isNull("src_big")) {
-                            result.add(tempJsonObject.getString("src_big"));
+                        if (!tempJsonObject.isNull("src_xxbig")) {
+                            result.add(tempJsonObject.getString("src_xxbig"));
+                        } else {
+                            if (!tempJsonObject.isNull("src_xbig")) {
+                                result.add(tempJsonObject.getString("src_xbig"));
+                            } else {
+                                if (!tempJsonObject.isNull("src_big")) {
+                                    result.add(tempJsonObject.getString("src_big"));
+                                }
+                            }
                         }
                     }
                 }
