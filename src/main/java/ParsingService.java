@@ -9,6 +9,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -32,13 +33,13 @@ public class ParsingService {
     private MessagesService messagesService = new MessagesService();
 
     public void download(String messagesSource, int count) {
-        String folderName = "folder ";
         jsonPattern = Pattern.compile(JSON_URL_PATTERN);
         Matcher jsonMatcher = jsonPattern.matcher(messagesSource);
         if (jsonMatcher.find()) {
             ArrayList<String> resultFromJson = findInJson(messagesSource);
+            String folderName = getFolderName(messagesSource);
             resultFromJson.forEach(record -> {
-                saveImage(record, folderName + count);
+                saveImage(record, folderName);
             });
         } else {
             urlPattern = Pattern.compile(URL_PATTERN);
@@ -47,6 +48,16 @@ public class ParsingService {
                 saveImage(lineMatcher.group(), "");
             }
         }
+    }
+
+    private String getFolderName(String messagesSource) {
+        JSONObject jsonObject = new JSONObject(messagesSource);
+        String name = "";
+        if (!jsonObject.getJSONObject("wall").isNull("date")) {
+            name = jsonObject.getJSONObject("wall").get("date").toString();
+            return name;
+        }
+        return name;
     }
 
     private void saveImage(String record, String folderName) {
@@ -68,8 +79,11 @@ public class ParsingService {
             if (!Files.isDirectory(Paths.get(stringBuilder.toString()))) {
                 Files.createDirectory(Paths.get(stringBuilder.toString()));
             }
+        } catch (FileAlreadyExistsException e) {
+            LOGGER.error("Folder already exists!" + "   " + e.getMessage());
+            e.printStackTrace();
         } catch (IOException e) {
-            LOGGER.error("Can't create folder, error!" + "   " + e.getMessage());
+            LOGGER.error("Some filesystem error!" + "   " + e.getMessage() + "\n  " + Arrays.toString(e.getStackTrace()));
             e.printStackTrace();
         }
         if (!Files.exists(Paths.get(stringBuilder.toString() + matchedName))) {
@@ -90,7 +104,7 @@ public class ParsingService {
                 Pattern keyPattern = Pattern.compile("(?:\\d*\\.)?\\d+");
                 Matcher matcher = keyPattern.matcher(folderName);
                 int key = Integer.valueOf(matcher.group());
-                LOGGER.error("\nImage not saved properly, error! \"" + record + "\"      " + e.getMessage() + "\n" + Arrays.toString(e.getStackTrace())+ "\n");
+                LOGGER.error("\nImage not saved properly, error! \"" + record + "\"      " + e.getMessage() + "\n" + Arrays.toString(e.getStackTrace()) + "\n");
                 WrongImage wrongImage = new WrongImage(key, record);
                 MessagesService.CANCELED_IMAGES.add(wrongImage);
                 e.printStackTrace();
