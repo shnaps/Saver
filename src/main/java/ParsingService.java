@@ -32,7 +32,7 @@ public class ParsingService {
     private URL url;
     private MessagesService messagesService = new MessagesService();
 
-    public void download(String messagesSource, int count) {
+    public void download(String messagesSource) {
         jsonPattern = Pattern.compile(JSON_URL_PATTERN);
         Matcher jsonMatcher = jsonPattern.matcher(messagesSource);
         if (jsonMatcher.find()) {

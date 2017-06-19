@@ -56,13 +56,9 @@ public class MessagesService {
                 stringStream.forEach(line -> {
                     tasksList.add(() -> {
                         countPlus();
-                        parsingService.download(line, getCount());
+                        parsingService.download(line);
                         return getCount();
                     });
-                    /*instance.submit(() -> {
-                        parsingService.download(line, this.count);
-                        countPlus();
-                    });*/
                 });
                 try {
                     futuresList = instance.invokeAll(tasksList);
@@ -77,7 +73,7 @@ public class MessagesService {
             LOGGER.info("Trying to save canceled images");
             CANCELED_IMAGES.forEach(record -> {
                 instance.submit(() -> {
-                    parsingService.download(record.getRecord(),record.getKey());
+                    parsingService.download(record.getRecord());
                 });
             });
 
