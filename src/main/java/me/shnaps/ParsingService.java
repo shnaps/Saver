@@ -1,3 +1,5 @@
+package me.shnaps;
+
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -13,41 +15,38 @@ import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ParsingService {
 
-    private final static Logger LOGGER = Logger.getLogger(ParsingService.class);
+    private static final Logger LOGGER = Logger.getLogger(ParsingService.class);
 
-    private final String URL_PATTERN = "(\\s:\\s)((?:https://)(?:[a-zA-Z0-9]{2,10})(?:.userapi.com/).{10,40}(?:.jpg))";
-    private final String JSON_URL_PATTERN = "(\"type\":\"wall\"?)";
-    private final String NAME_PATTERN = "(/)([A-Za-z0-9-_]+)(.jpg)";
-
-    private static Pattern urlPattern;
-    private static Pattern jsonPattern;
-    private static Pattern namePattern;
-
+    private static final String URL_REGEX = "(\\s:\\s)((?:https://)(?:[a-zA-Z0-9]{2,10})(?:.userapi.com/).{10,40}(?:.jpg))";
+    private static final String WALL_POST_REGEX = "(\"type\":\"wall\"?)";
+    private static final String NAME_REGEX = "(/)([A-Za-z0-9-_]+)(.jpg)";
+    private Pattern namePattern = Pattern.compile(NAME_REGEX);
+    private Pattern urlPattern = Pattern.compile(URL_REGEX);
+    private Pattern wallPostPattern = Pattern.compile(WALL_POST_REGEX);
+    private Pattern keyPattern = Pattern.compile("(?:\\d*\\.)?\\d+");
     private URL url;
-    private MessagesService messagesService = new MessagesService();
+    private ImagesService imagesService = new ImagesService();
 
-    public void download(String messagesSource) {
-        jsonPattern = Pattern.compile(JSON_URL_PATTERN);
-        Matcher jsonMatcher = jsonPattern.matcher(messagesSource);
+    boolean download(String messagesSource) {
+        Matcher jsonMatcher = wallPostPattern.matcher(messagesSource);
         if (jsonMatcher.find()) {
             ArrayList<String> resultFromJson = findInJson(messagesSource);
             String folderName = getFolderName(messagesSource);
-            resultFromJson.forEach(record -> {
-                saveImage(record, folderName);
-            });
+            resultFromJson.forEach(record ->
+                    saveImage(record, folderName)
+            );
         } else {
-            urlPattern = Pattern.compile(URL_PATTERN);
             Matcher lineMatcher = urlPattern.matcher(messagesSource);
             while (lineMatcher.find()) {
                 saveImage(lineMatcher.group(), "");
             }
         }
+        return true;
     }
 
     private String getFolderName(String messagesSource) {
@@ -61,56 +60,47 @@ public class ParsingService {
     }
 
     private void saveImage(String record, String folderName) {
-
-        LOGGER.info("Line matched      \"" + record + "\"");
-        namePattern = Pattern.compile(NAME_PATTERN);
+        LOGGER.info("Line matched: " + record);
         Matcher nameMatcher = namePattern.matcher(record);
         String matchedName = "";
         if (nameMatcher.find()) {
             matchedName = nameMatcher.group().replaceFirst("/", "");
         }
         StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(messagesService.getPath());
+        stringBuilder.append(imagesService.getPath());
         stringBuilder.append(File.separator);
         if (!folderName.equals("")) {
             stringBuilder.append(folderName + File.separator);
         }
         try {
-            if (!Files.isDirectory(Paths.get(stringBuilder.toString()))) {
+            if (!Paths.get(stringBuilder.toString()).toFile().isDirectory()) {
                 Files.createDirectory(Paths.get(stringBuilder.toString()));
             }
         } catch (FileAlreadyExistsException e) {
-            LOGGER.error("Folder already exists!" + "   " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.error("Folder already exists: " + e);
         } catch (IOException e) {
-            LOGGER.error("Some filesystem error!" + "   " + e.getMessage() + "\n  " + Arrays.toString(e.getStackTrace()));
-            e.printStackTrace();
+            LOGGER.error("Filesystem error: " + e);
         }
-        if (!Files.exists(Paths.get(stringBuilder.toString() + matchedName))) {
+        if (!Paths.get(stringBuilder.toString() + matchedName).toFile().exists()) {
             try {
                 LOGGER.info("Getting image from \"" + record + "\"");
                 url = new URL(record.replaceFirst(" : ", ""));
             } catch (MalformedURLException e) {
-                LOGGER.error("Url not created, error!" + record + "   " + e.getMessage());
-                e.printStackTrace();
+                LOGGER.error("Url not created for " + record + " : " + e);
             }
-            try {
-                ReadableByteChannel rb = Channels.newChannel(url.openStream());
-                FileOutputStream fos = new FileOutputStream(stringBuilder.toString() + matchedName);
+            try (ReadableByteChannel rb = Channels.newChannel(url.openStream());
+                 FileOutputStream fos = new FileOutputStream(stringBuilder.toString() + matchedName)) {
                 fos.getChannel().transferFrom(rb, 0, Long.MAX_VALUE);
                 LOGGER.info("Saving image " + matchedName);
-                fos.close();
             } catch (IOException e) {
-                Pattern keyPattern = Pattern.compile("(?:\\d*\\.)?\\d+");
                 Matcher matcher = keyPattern.matcher(folderName);
-                int key = Integer.valueOf(matcher.group());
-                LOGGER.error("\nImage not saved properly, error! \"" + record + "\"      " + e.getMessage() + "\n" + Arrays.toString(e.getStackTrace()) + "\n");
+                int key = Integer.parseInt(matcher.group());
+                LOGGER.error("\nImage not saved properly for " + record + " : " + e);
                 WrongImage wrongImage = new WrongImage(key, record);
-                MessagesService.CANCELED_IMAGES.add(wrongImage);
-                e.printStackTrace();
+                imagesService.getCanceledImages().add(wrongImage);
             }
         } else {
-            LOGGER.info("File already exists      " + matchedName + "");
+            LOGGER.info("File already exists " + matchedName);
         }
     }
 

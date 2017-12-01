@@ -1,6 +1,5 @@
-/**
- * Created by shnaps on 18.06.2017.
- */
+package me.shnaps;
+
 public class WrongImage {
     private int key;
     private String record;
