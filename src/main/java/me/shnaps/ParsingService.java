@@ -14,9 +14,11 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class ParsingService {
 
@@ -32,10 +34,26 @@ public class ParsingService {
     private URL url;
     private ImagesService imagesService = new ImagesService();
 
+    private static Stream<String> findInJson(final String source) {
+        return Optional
+                .ofNullable(source)
+                .map(JSONObject::new)
+                .map(Field.wall::optJSONObject)
+                .map(Field.attachments::optJSONArray)
+                .map(JSONArray::toList)
+                .map(List::stream)
+                .orElseGet(Stream::empty)
+                .map(Map.class::cast)
+                .map(JSONObject::new)
+                .map(Field.photo::optJSONObject)
+                .filter(Objects::nonNull)
+                .flatMap(o -> PhotoSize.stream().map(p -> p.optString(o)).filter(Objects::nonNull).limit(1));
+    }
+
     boolean download(String messagesSource) {
         Matcher jsonMatcher = wallPostPattern.matcher(messagesSource);
         if (jsonMatcher.find()) {
-            ArrayList<String> resultFromJson = findInJson(messagesSource);
+            ArrayList<String> resultFromJson = findInJson(messagesSource).collect(Collectors.toCollection(ArrayList::new));
             String folderName = getFolderName(messagesSource);
             resultFromJson.forEach(record ->
                     saveImage(record, folderName)
@@ -102,37 +120,5 @@ public class ParsingService {
         } else {
             LOGGER.info("File already exists " + matchedName);
         }
-    }
-
-    private ArrayList<String> findInJson(String source) {
-        JSONObject jsonObject = new JSONObject(source);
-        ArrayList<String> result = new ArrayList<>();
-        if (jsonObject.getJSONObject("wall").isNull("attachments")) {
-            return result;
-        } else {
-            JSONArray jsonArray = jsonObject.getJSONObject("wall").getJSONArray("attachments");
-            for (Object object : jsonArray) {
-                JSONObject tempObject = (JSONObject) object;
-                if (!tempObject.isNull("photo")) {
-                    JSONObject tempJsonObject = tempObject.getJSONObject("photo");
-                    if (!tempJsonObject.isNull("src_xxxbig")) {
-                        result.add(tempJsonObject.getString("src_xxxbig"));
-                    } else {
-                        if (!tempJsonObject.isNull("src_xxbig")) {
-                            result.add(tempJsonObject.getString("src_xxbig"));
-                        } else {
-                            if (!tempJsonObject.isNull("src_xbig")) {
-                                result.add(tempJsonObject.getString("src_xbig"));
-                            } else {
-                                if (!tempJsonObject.isNull("src_big")) {
-                                    result.add(tempJsonObject.getString("src_big"));
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return result;
     }
 }
