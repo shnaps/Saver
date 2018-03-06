@@ -20,6 +20,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static me.shnaps.AppStarter.imagesService;
+
 public class ParsingService {
 
     private static final Logger LOGGER = Logger.getLogger(ParsingService.class);
@@ -32,7 +34,6 @@ public class ParsingService {
     private Pattern wallPostPattern = Pattern.compile(WALL_POST_REGEX);
     private Pattern keyPattern = Pattern.compile("(?:\\d*\\.)?\\d+");
     private URL url;
-    private ImagesService imagesService = new ImagesService();
 
     private static Stream<String> findInJson(final String source) {
         return Optional

@@ -5,7 +5,7 @@ import org.apache.log4j.Logger;
 public class AppStarter {
     private static final Logger LOGGER = Logger.getLogger(AppStarter.class);
 
-    private ImagesService imagesService = new ImagesService();
+    static ImagesService imagesService = new ImagesService();
     private String messagesFileName = "";
 
     public static void main(String[] args) {

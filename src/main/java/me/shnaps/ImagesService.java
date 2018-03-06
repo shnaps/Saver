@@ -4,11 +4,13 @@ import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -53,7 +55,9 @@ public class ImagesService {
             LOGGER.info("Find images in text started");
             ClassLoader classLoader = getClass().getClassLoader();
             ParsingService parsingService = new ParsingService();
-            File file = new File(classLoader.getResource(fileName).getFile());
+            URL resource = classLoader.getResource(fileName);
+            String pathname = Objects.requireNonNull(resource).getFile().replaceAll("%20", " ");
+            File file = new File(pathname);
             String fileAbsPath = file.getAbsolutePath();
             try (Stream<String> stringStream = Files.lines(Paths.get(fileAbsPath))) {
                 stringStream.forEach(line ->
@@ -63,7 +67,7 @@ public class ImagesService {
                 );
                 executorService.invokeAll(tasksList);
             } catch (IOException e) {
-                LOGGER.error("Cant create stream: " + e);
+                LOGGER.error("Can't create stream: " + e);
             }
             LOGGER.info("Trying to save canceled images");
             canceledImages.forEach(record ->
