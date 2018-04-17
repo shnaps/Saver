@@ -22,7 +22,7 @@ public class ImagesService {
     private static final Logger LOGGER = Logger.getLogger(ImagesService.class);
 
     private ArrayList<WrongImage> canceledImages = new ArrayList<>();
-    private String path = System.getProperty("user.dir") + File.separator + "pic";
+    private String path = ("./") + File.separator +("results") + File.separator;
     private ExecutorService executorService = Executors.newFixedThreadPool(10);
     private Collection<Callable<Boolean>> tasksList = new ArrayList<>();
 
